@@ -23,18 +23,80 @@
 #     this function terminates the program with error code 30
 # ==============================================================================
 write_matrix:
-
     # Prologue
-
-
-
-
-
-
-
+    addi sp sp -20
+    sw ra 0(sp)
+    sw s0 4(sp)
+    sw s1 8(sp)
+    sw s2 12(sp)
+    sw s3 16(sp)
+    
+    mv s1 a1 #*t
+    mv s2 a2 #row num
+    mv s3 a3 #column num
+    
+    #fopen
+    li a1 1
+    jal fopen
+    li t0 -1
+    beq a0 t0 fopen_error
+    mv s0 a0 # file descriptor
+    
+    #fwrite row num
+    addi sp sp -4
+    sw s2 0(sp)
+    mv a1 sp
+    li a2 1
+    li a3 4
+    jal fwrite
+    li t0 1
+    bne a0 t0 fwrite_error
+    
+    mv a0 s0
+    sw s3 0(sp)
+    mv a1 sp
+    li a2 1
+    li a3 4
+    jal fwrite
+    li t0 1
+    bne a0 t0 fwrite_error
+    addi sp sp 4
+    
+    #fwrite data
+    mv a0 s0
+    mv a1 s1
+    mv a2 s2
+    mul a2 a2 s3
+    li a3 4
+    jal fwrite
+    mv t0 s2
+    mul t0 s2 s3
+    bne a0 t0 fwrite_error
+    
+    #fclose
+    mv a0 s0
+    jal fclose
+    bne a0 zero fclose_error
 
 
     # Epilogue
-
+    lw ra 0(sp)
+    lw s0 4(sp)
+    lw s1 8(sp)
+    lw s2 12(sp)
+    lw s3 16(sp)
+    addi sp sp 20
 
     jr ra
+
+fopen_error:
+    li a0 27
+    j exit
+    
+fwrite_error:
+    li a0 30
+    j exit
+
+fclose_error:
+    li a0 28
+    j exit
